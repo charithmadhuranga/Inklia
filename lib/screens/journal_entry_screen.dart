@@ -29,9 +29,11 @@ class JournalEntryScreen extends StatefulWidget {
 class _JournalEntryScreenState extends State<JournalEntryScreen> {
   final DatabaseService _databaseService = DatabaseService();
   final ImagePicker _imagePicker = ImagePicker();
-  final AudioRecorder _audioRecorder = AudioRecorder();
+  final Record _audioRecorder = Record();
   final AudioPlayer _audioPlayer = AudioPlayer();
   final TextEditingController _tagController = TextEditingController();
+
+  String? _currentRecordingPath;
 
   late TextEditingController _titleController;
   late TextEditingController _contentController;
@@ -59,6 +61,18 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     _tags = List.from(widget.existingEntry?.tags ?? []);
     _isFavorite = widget.existingEntry?.isFavorite ?? false;
     _selectedTemplate = widget.existingEntry?.templateType;
+
+    _audioPlayer.onPlayerComplete.listen((_) {
+      if (mounted) {
+        setState(() {
+          _playingVoiceMemo = null;
+        });
+      }
+    });
+
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      debugPrint('Player state changed: $state');
+    });
   }
 
   @override
@@ -72,35 +86,175 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? image = await _imagePicker.pickImage(
-      source: ImageSource.gallery,
-    );
-    if (image != null) {
-      final savedPath = await _saveFile(image.path);
-      setState(() {
-        _imagePaths.add(savedPath);
-      });
+    try {
+      // For macOS, we need special handling
+      if (Platform.isMacOS) {
+        return await _pickImageMacOS();
+      }
+
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        requestFullMetadata: false,
+      );
+      if (image != null && mounted) {
+        final savedPath = await _saveFile(image.path);
+        setState(() {
+          _imagePaths.add(savedPath);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
+      }
+    }
+  }
+
+  Future<void> _pickImageMacOS() async {
+    try {
+      // macOS implementation with proper error handling
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        requestFullMetadata: false,
+        imageQuality: 85,
+      );
+
+      if (image != null && mounted) {
+        // Ensure the file exists before processing
+        final sourceFile = File(image.path);
+        if (await sourceFile.exists()) {
+          final savedPath = await _saveFile(image.path);
+          if (mounted) {
+            setState(() {
+              _imagePaths.add(savedPath);
+            });
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Image file could not be accessed.'),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      // Handle macOS-specific errors
+      String errorMessage = 'Failed to pick image';
+      if (e.toString().contains('open returned 1')) {
+        errorMessage =
+            'Failed to access Photo Library. Check permissions in Settings > Privacy & Security.';
+      } else if (e.toString().contains('Permission denied')) {
+        errorMessage =
+            'Permission denied. Please enable photo library access in Settings.';
+      } else {
+        errorMessage = 'Failed to pick image: $e';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
     }
   }
 
   Future<void> _takePhoto() async {
-    final XFile? photo = await _imagePicker.pickImage(
-      source: ImageSource.camera,
-    );
-    if (photo != null) {
-      final savedPath = await _saveFile(photo.path);
-      setState(() {
-        _imagePaths.add(savedPath);
-      });
+    // Camera is not supported on macOS
+    if (Platform.isMacOS) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Camera is not available on macOS. Use Photo Library instead.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      final XFile? photo = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        requestFullMetadata: false,
+        imageQuality: 85,
+      );
+      if (photo != null && mounted) {
+        final savedPath = await _saveFile(photo.path);
+        if (mounted) {
+          setState(() {
+            _imagePaths.add(savedPath);
+          });
+        }
+      }
+    } catch (e) {
+      String errorMessage = 'Failed to take photo';
+      if (e.toString().contains('Permission denied')) {
+        errorMessage =
+            'Camera permission denied. Please enable camera access in Settings.';
+      } else if (e.toString().contains('camera')) {
+        errorMessage = 'Camera is not available or not configured correctly.';
+      } else {
+        errorMessage = 'Failed to take photo: $e';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
     }
   }
 
   Future<String> _saveFile(String filePath) async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final fileName = '${const Uuid().v4()}${path.extension(filePath)}';
-    final savedPath = path.join(appDir.path, fileName);
-    await File(filePath).copy(savedPath);
-    return savedPath;
+    try {
+      final sourceFile = File(filePath);
+
+      // Verify source file exists
+      if (!await sourceFile.exists()) {
+        throw Exception('Source file does not exist: $filePath');
+      }
+
+      // Get appropriate directory based on platform
+      Directory targetDir;
+
+      if (Platform.isMacOS) {
+        // On macOS, use Application Support directory for better compatibility
+        targetDir = await getApplicationSupportDirectory();
+      } else {
+        // On iOS and Android, use Documents directory
+        targetDir = await getApplicationDocumentsDirectory();
+      }
+
+      // Create subdirectory for media
+      final mediaDir = Directory('${targetDir.path}/media');
+      if (!await mediaDir.exists()) {
+        await mediaDir.create(recursive: true);
+      }
+
+      final fileName = '${const Uuid().v4()}${path.extension(filePath)}';
+      final savedPath = path.join(mediaDir.path, fileName);
+
+      // Copy file with proper error handling
+      final savedFile = await sourceFile.copy(savedPath);
+
+      // Verify the saved file exists and has size
+      if (!await savedFile.exists()) {
+        throw Exception('Failed to save file: $savedPath');
+      }
+
+      final fileSize = await savedFile.length();
+      if (fileSize == 0) {
+        throw Exception('File was saved but is empty: $savedPath');
+      }
+
+      return savedPath;
+    } catch (e) {
+      throw Exception('Error saving file: $e');
+    }
   }
 
   void _removeImage(int index) {
@@ -110,46 +264,220 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   }
 
   Future<void> _startRecording() async {
-    if (await _audioRecorder.hasPermission()) {
+    try {
+      // Request permission explicitly - this should trigger the dialog
+      final hasPermission = await _audioRecorder.hasPermission();
+      debugPrint('Permission status: $hasPermission');
+
+      if (!hasPermission) {
+        // Try to request permission by starting recording - this should trigger the system dialog
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Please grant microphone permission in System Settings > Privacy & Security > Microphone',
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Continue with recording setup
       final appDir = await getApplicationDocumentsDirectory();
+
+      // Ensure app directory exists
+      if (!await appDir.exists()) {
+        await appDir.create(recursive: true);
+      }
+
       final fileName = '${const Uuid().v4()}.m4a';
       final voicePath = path.join(appDir.path, fileName);
 
-      await _audioRecorder.start(
-        const RecordConfig(encoder: AudioEncoder.aacLc),
-        path: voicePath,
-      );
+      // Store the plain path for later use
+      _currentRecordingPath = voicePath;
 
-      setState(() {
-        _isRecording = true;
-      });
+      // Use file:// URL format for iOS/macOS
+      final fileUrl = 'file://$voicePath';
+      debugPrint('Starting recording to: $fileUrl');
+
+      // Start recording - let it use default settings
+      await _audioRecorder.start(path: fileUrl);
+
+      // Check if actually recording
+      final isRecording = await _audioRecorder.isRecording();
+      debugPrint('Is actually recording: $isRecording');
+
+      if (mounted) {
+        setState(() {
+          _isRecording = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Start recording error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to start recording: $e')),
+        );
+      }
     }
   }
 
   Future<void> _stopRecording() async {
-    final voicePath = await _audioRecorder.stop();
-    setState(() {
-      _isRecording = false;
-    });
+    try {
+      await _audioRecorder.stop();
 
-    if (voicePath != null) {
-      setState(() {
-        _voiceMemoPaths.add(voicePath);
-      });
+      if (mounted) {
+        setState(() {
+          _isRecording = false;
+        });
+      }
+
+      // Allow time for file to be written/flushed
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      String? finalPath = _currentRecordingPath;
+
+      if (finalPath != null && finalPath.isNotEmpty) {
+        final recordedFile = File(finalPath);
+
+        // Add a small delay to ensure file is written to disk
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (await recordedFile.exists()) {
+          final fileSize = await recordedFile.length();
+
+          debugPrint('Recording file size: $fileSize bytes');
+
+          if (fileSize > 0) {
+            if (mounted) {
+              setState(() {
+                _voiceMemoPaths.add(finalPath!);
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Voice memo saved: ${(fileSize / 1024).toStringAsFixed(1)} KB',
+                  ),
+                ),
+              );
+              debugPrint(
+                'Voice memo added to list. Total memos: ${_voiceMemoPaths.length}',
+              );
+            }
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Recording file is empty. Please try again.'),
+                ),
+              );
+            }
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Recording file not found at: $finalPath'),
+              ),
+            );
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No recording path returned. Please try again.'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to stop recording: $e')));
+      }
+      debugPrint('Stop recording error: $e');
+    } finally {
+      _currentRecordingPath = null;
     }
   }
 
   Future<void> _playVoiceMemo(String voicePath) async {
-    if (_playingVoiceMemo == voicePath) {
+    try {
+      if (_playingVoiceMemo == voicePath) {
+        // Stop playback if already playing this file
+        await _audioPlayer.stop();
+        if (mounted) {
+          setState(() {
+            _playingVoiceMemo = null;
+          });
+        }
+        return;
+      }
+
+      // Verify file exists before attempting to play
+      final file = File(voicePath);
+      if (!await file.exists()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Voice memo file not found: $voicePath')),
+          );
+        }
+        return;
+      }
+
+      // Check file size
+      final fileSize = await file.length();
+      if (fileSize == 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Voice memo file is empty.')),
+          );
+        }
+        return;
+      }
+
+      // Log the file details for debugging
+      debugPrint('Playing voice memo: $voicePath (${fileSize} bytes)');
+
+      // First, stop any currently playing audio and wait a moment
       await _audioPlayer.stop();
-      setState(() {
-        _playingVoiceMemo = null;
-      });
-    } else {
-      await _audioPlayer.play(DeviceFileSource(voicePath));
-      setState(() {
-        _playingVoiceMemo = voicePath;
-      });
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Set volume explicitly
+      await _audioPlayer.setVolume(1.0);
+
+      if (mounted) {
+        setState(() {
+          _playingVoiceMemo = voicePath;
+        });
+      }
+
+      // Play using UrlSource with absolute file path
+      debugPrint('Playing from path: $voicePath');
+
+      // Use Uri.parse with file:// scheme directly
+      final fileUri = 'file://${voicePath}';
+      debugPrint('Playing from URI: $fileUri');
+      await _audioPlayer.play(UrlSource(fileUri));
+
+      // Debug: check player state
+      debugPrint('Player state: ${_audioPlayer.state}');
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Playing audio...')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to play voice memo: $e')),
+        );
+      }
+      debugPrint('Playback error: $e');
     }
   }
 
@@ -211,36 +539,6 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     if (mounted) {
       Navigator.pop(context, true);
     }
-  }
-
-  void _showImageOptions() {
-    showModalBottomSheet(
-      context: context,
-      builder:
-          (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_library),
-                  title: const Text('Choose from Gallery'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickImage();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.camera_alt),
-                  title: const Text('Take a Photo'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _takePhoto();
-                  },
-                ),
-              ],
-            ),
-          ),
-    );
   }
 
   void _showTemplatesSheet() {
