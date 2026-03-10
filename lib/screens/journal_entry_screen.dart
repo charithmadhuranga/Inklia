@@ -29,7 +29,7 @@ class JournalEntryScreen extends StatefulWidget {
 class _JournalEntryScreenState extends State<JournalEntryScreen> {
   final DatabaseService _databaseService = DatabaseService();
   final ImagePicker _imagePicker = ImagePicker();
-  final Record _audioRecorder = Record();
+  final AudioRecorder _audioRecorder = AudioRecorder();
   final AudioPlayer _audioPlayer = AudioPlayer();
   final TextEditingController _tagController = TextEditingController();
 
@@ -301,8 +301,11 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
       final fileUrl = 'file://$voicePath';
       debugPrint('Starting recording to: $fileUrl');
 
-      // Start recording - let it use default settings
-      await _audioRecorder.start(path: fileUrl);
+      // Start recording with config
+      await _audioRecorder.start(
+        const RecordConfig(encoder: AudioEncoder.aacLc),
+        path: fileUrl,
+      );
 
       // Check if actually recording
       final isRecording = await _audioRecorder.isRecording();
