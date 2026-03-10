@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/journal_entry.dart';
@@ -13,15 +14,35 @@ class DatabaseService {
   }
 
   Future<Database> _initDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'journal.db');
+    try {
+      final dbPath = await getDatabasesPath();
+      final path = join(dbPath, 'journal.db');
 
-    return await openDatabase(
-      path,
-      version: 2,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
+      return await openDatabase(
+        path,
+        version: 2,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+      );
+    } catch (e) {
+      debugPrint('Database initialization error: $e');
+      // If database is corrupted, try to delete and recreate
+      try {
+        final dbPath = await getDatabasesPath();
+        final path = join(dbPath, 'journal.db');
+        await deleteDatabase(path);
+        
+        return await openDatabase(
+          path,
+          version: 2,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+        );
+      } catch (retryError) {
+        debugPrint('Failed to reinitialize database: $retryError');
+        rethrow;
+      }
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {

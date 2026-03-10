@@ -29,18 +29,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadEntries() async {
-    final entries = await _databaseService.getAllEntries();
-    setState(() {
-      _events = {};
-      for (final entry in entries) {
-        final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
-        if (_events[day] == null) {
-          _events[day] = [];
-        }
-        _events[day]!.add(entry);
+    try {
+      final entries = await _databaseService.getAllEntries();
+      if (mounted) {
+        setState(() {
+          _events = {};
+          for (final entry in entries) {
+            final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
+            if (_events[day] == null) {
+              _events[day] = [];
+            }
+            _events[day]!.add(entry);
+          }
+          _selectedEvents = _getEventsForDay(_selectedDay!);
+        });
       }
-      _selectedEvents = _getEventsForDay(_selectedDay!);
-    });
+    } catch (e) {
+      debugPrint('Error loading entries: $e');
+      // Continue with empty entries rather than crashing
+      if (mounted) {
+        setState(() {
+          _events = {};
+          _selectedEvents = [];
+        });
+      }
+    }
   }
 
   List<JournalEntry> _getEventsForDay(DateTime day) {

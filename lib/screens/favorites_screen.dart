@@ -28,14 +28,26 @@ class FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   Future<void> _loadFavorites() async {
-    setState(() {
-      _isLoading = true;
-    });
-    final favorites = await _databaseService.getFavoriteEntries();
-    setState(() {
-      _favorites = favorites;
-      _isLoading = false;
-    });
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      final favorites = await _databaseService.getFavoriteEntries();
+      if (mounted) {
+        setState(() {
+          _favorites = favorites;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading favorites: $e');
+      if (mounted) {
+        setState(() {
+          _favorites = [];
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _navigateToEntry(JournalEntry entry) {

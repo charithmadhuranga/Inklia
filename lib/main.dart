@@ -3,6 +3,7 @@ import 'theme/app_theme.dart';
 import 'screens/main_navigation.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 

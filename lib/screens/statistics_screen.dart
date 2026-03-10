@@ -29,18 +29,33 @@ class StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Future<void> _loadStatistics() async {
-    final moodStats = await _databaseService.getMoodStatistics();
-    final totalEntries = await _databaseService.getTotalEntriesCount();
-    final currentStreak = await _databaseService.getCurrentStreak();
-    final allTags = await _databaseService.getAllTags();
+    try {
+      final moodStats = await _databaseService.getMoodStatistics();
+      final totalEntries = await _databaseService.getTotalEntriesCount();
+      final currentStreak = await _databaseService.getCurrentStreak();
+      final allTags = await _databaseService.getAllTags();
 
-    setState(() {
-      _moodStats = moodStats;
-      _totalEntries = totalEntries;
-      _currentStreak = currentStreak;
-      _allTags = allTags;
-      _isLoading = false;
-    });
+      if (mounted) {
+        setState(() {
+          _moodStats = moodStats;
+          _totalEntries = totalEntries;
+          _currentStreak = currentStreak;
+          _allTags = allTags;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading statistics: $e');
+      if (mounted) {
+        setState(() {
+          _moodStats = {};
+          _totalEntries = 0;
+          _currentStreak = 0;
+          _allTags = [];
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override

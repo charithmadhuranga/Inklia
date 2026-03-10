@@ -31,10 +31,21 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _loadRecentEntries() async {
-    final entries = await _databaseService.getAllEntries();
-    setState(() {
-      _recentEntries = entries.take(5).toList();
-    });
+    try {
+      final entries = await _databaseService.getAllEntries();
+      if (mounted) {
+        setState(() {
+          _recentEntries = entries.take(5).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading recent entries: $e');
+      if (mounted) {
+        setState(() {
+          _recentEntries = [];
+        });
+      }
+    }
   }
 
   Future<void> _search(String query) async {
@@ -50,10 +61,21 @@ class _SearchScreenState extends State<SearchScreen> {
       _isSearching = true;
     });
 
-    final results = await _databaseService.searchEntries(query);
-    setState(() {
-      _results = results;
-    });
+    try {
+      final results = await _databaseService.searchEntries(query);
+      if (mounted) {
+        setState(() {
+          _results = results;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error searching entries: $e');
+      if (mounted) {
+        setState(() {
+          _results = [];
+        });
+      }
+    }
   }
 
   void _navigateToEntry(JournalEntry entry) {
