@@ -39,7 +39,7 @@ Inklia is a beautiful, feature-rich personal journal application built with Flut
 
 | Platform | File | Size |
 |:--------:|:----:|:----:|
-| <img src="https://img.shields.io/badge/-Android-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android"> | **[Inklia-android.apk](https://github.com/charithmadhuranga/Inklia/releases/latest/download/app-release.apk)** | APK Installer |
+| <img src="https://img.shields.io/badge/-Android-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android"> | **[Inklia-android.apk](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-android.apk)** | APK Installer |
 | <img src="https://img.shields.io/badge/-iOS-000000?style=flat-square&logo=apple&logoColor=white" alt="iOS"> | **[Inklia-ios.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-ios.zip)** | App Bundle |
 | <img src="https://img.shields.io/badge/-macOS-999999?style=flat-square&logo=apple&logoColor=white" alt="macOS"> | **[Inklia-macos.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-macos.zip)** | DMG Package |
 | <img src="https://img.shields.io/badge/-Linux-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux"> | **[Inklia-linux.tar.gz](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-linux.tar.gz)** | TAR Archive |

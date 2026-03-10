@@ -297,14 +297,12 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
       // Store the plain path for later use
       _currentRecordingPath = voicePath;
 
-      // Use file:// URL format for iOS/macOS
-      final fileUrl = 'file://$voicePath';
-      debugPrint('Starting recording to: $fileUrl');
+      debugPrint('Starting recording to: $voicePath');
 
-      // Start recording with config
+      // Start recording with config - use plain path for all platforms
       await _audioRecorder.start(
         const RecordConfig(encoder: AudioEncoder.aacLc),
-        path: fileUrl,
+        path: voicePath,
       );
 
       // Check if actually recording
