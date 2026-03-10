@@ -1,1 +1,2 @@
 preview/*.mov filter=lfs diff=lfs merge=lfs -text
+preview/*.gif filter=lfs diff=lfs merge=lfs -text

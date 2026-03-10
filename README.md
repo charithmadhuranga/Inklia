@@ -60,7 +60,7 @@ Inklia is a beautiful, feature-rich personal journal application built with Flut
 
 Watch the app in action:
 
-https://github.com/charithmadhuranga/Inklia/assets/preview/preview.mov
+![Demo](preview/preview.gif)
 
 ---
 
