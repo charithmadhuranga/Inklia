@@ -121,7 +121,7 @@ jobs:
       - name: Create TAR.GZ
         run: |
           cd build/linux/x64/release/bundle
-          tar -czvf Inklia-linux.tar.gz Inklia
+          tar -czvf ../../../../Inklia-linux.tar.gz .
 
       - name: Upload Linux
         uses: actions/upload-artifact@v4
@@ -150,14 +150,14 @@ jobs:
 
       - name: Create ZIP
         run: |
-          cd build/windows/x64/runner/Release
-          Compress-Archive -Path Inklia.exe -DestinationPath Inklia-windows.zip
+          Get-ChildItem -Path build -Recurse -Filter "*.exe" | Select-Object -First 1 -ExpandProperty FullName
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath Inklia-windows.zip -Force
 
       - name: Upload Windows
         uses: actions/upload-artifact@v4
         with:
           name: Inklia-windows.zip
-          path: build/windows/x64/runner/Release/Inklia-windows.zip
+          path: Inklia-windows.zip
 
   release:
     name: Create Release
@@ -174,7 +174,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*.apk
+          files: |
+            artifacts/**/*.apk
+            artifacts/**/*.zip
+            artifacts/**/*.tar.gz
           draft: false
           prerelease: false
         env:
