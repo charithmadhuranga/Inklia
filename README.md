@@ -10,6 +10,43 @@ Inklia is a beautiful, feature-rich personal journal application built with Flut
 
 ---
 
+
+## 📥 Download Latest Release
+
+<div align="center">
+
+### Get Inklia on Your Device
+
+<p>
+  <a href="https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-android.apk">
+    <img src="https://img.shields.io/badge/Android-📱-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Download for Android">
+  </a>
+  <a href="https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-ios.zip">
+    <img src="https://img.shields.io/badge/iOS-📱-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download for iOS">
+  </a>
+  <a href="https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-macos.zip">
+    <img src="https://img.shields.io/badge/macOS-🖥️-999999?style=for-the-badge&logo=apple&logoColor=white" alt="Download for macOS">
+  </a>
+  <a href="https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-linux.tar.gz">
+    <img src="https://img.shields.io/badge/Linux-🐧-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download for Linux">
+  </a>
+  <a href="https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-windows.zip">
+    <img src="https://img.shields.io/badge/Windows-🪟-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows">
+  </a>
+</p>
+
+### Available Downloads
+
+| Platform | File | Size |
+|:--------:|:----:|:----:|
+| <img src="https://img.shields.io/badge/-Android-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android"> | **[Inklia-android.apk](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-android.apk)** | APK Installer |
+| <img src="https://img.shields.io/badge/-iOS-000000?style=flat-square&logo=apple&logoColor=white" alt="iOS"> | **[Inklia-ios.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-ios.zip)** | App Bundle |
+| <img src="https://img.shields.io/badge/-macOS-999999?style=flat-square&logo=apple&logoColor=white" alt="macOS"> | **[Inklia-macos.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-macos.zip)** | DMG Package |
+| <img src="https://img.shields.io/badge/-Linux-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux"> | **[Inklia-linux.tar.gz](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-linux.tar.gz)** | TAR Archive |
+| <img src="https://img.shields.io/badge/-Windows-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Windows"> | **[Inklia-windows.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-windows.zip)** | ZIP Archive |
+
+</div>
+
 ## Features
 
 ### 📅 Calendar System
@@ -56,17 +93,6 @@ Inklia is a beautiful, feature-rich personal journal application built with Flut
 
 ---
 
-## Download
-
-Get the latest release for your platform:
-
-| Platform | Download |
-|----------|----------|
-| Android | [Inklia-android.apk](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-android.apk) |
-| iOS | [Inklia-ios.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-ios.zip) |
-| macOS | [Inklia-macos.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-macos.zip) |
-| Linux | [Inklia-linux.tar.gz](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-linux.tar.gz) |
-| Windows | [Inklia-windows.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-windows.zip) |
 
 ---
 
