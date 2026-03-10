@@ -56,6 +56,14 @@ Inklia is a beautiful, feature-rich personal journal application built with Flut
 
 ---
 
+## Demo
+
+Watch the app in action:
+
+https://github.com/charithmadhuranga/Inklia/assets/preview/preview.mov
+
+---
+
 ## Screenshots
 
 The app features a modern, gradient-based UI with:
