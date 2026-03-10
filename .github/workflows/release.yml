@@ -1,0 +1,200 @@
+name: Build Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd testapp
+          flutter pub get
+
+      - name: Build Android APK
+        run: |
+          cd testapp
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: testapp/build/app/outputs/flutter-apk/app-release.apk
+          asset_name: Inklia-android.apk
+          asset_content_type: application/vnd.android.package-archive
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd testapp
+          flutter pub get
+
+      - name: Build iOS
+        run: |
+          cd testapp
+          flutter build ios --release --no-codesign
+
+      - name: Create ZIP
+        run: |
+          cd testapp/build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -r Inklia-ios.zip Payload
+
+      - name: Upload iOS
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: testapp/build/ios/iphoneos/Inklia-ios.zip
+          asset_name: Inklia-ios.zip
+          asset_content_type: application/zip
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd testapp
+          flutter pub get
+
+      - name: Build macOS
+        run: |
+          cd testapp
+          flutter build macos --release
+
+      - name: Create ZIP
+        run: |
+          cd testapp/build/macos/Build/Products/Release
+          mkdir -p Payload
+          cp -r Inklia.app Payload/
+          zip -r Inklia-macos.zip Payload
+
+      - name: Upload macOS
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: testapp/build/macos/Build/Products/Release/Inklia-macos.zip
+          asset_name: Inklia-macos.zip
+          asset_content_type: application/zip
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+
+      - name: Install dependencies
+        run: |
+          cd testapp
+          flutter pub get
+
+      - name: Build Linux
+        run: |
+          cd testapp
+          flutter build linux --release
+
+      - name: Create TAR.GZ
+        run: |
+          cd testapp/build/linux/x64/release/bundle
+          tar -czvf Inklia-linux.tar.gz Inklia
+
+      - name: Upload Linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: testapp/build/linux/x64/release/bundle/Inklia-linux.tar.gz
+          asset_name: Inklia-linux.tar.gz
+          asset_content_type: application/gzip
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd testapp
+          flutter pub get
+
+      - name: Build Windows
+        run: |
+          cd testapp
+          flutter build windows --release
+
+      - name: Create ZIP
+        run: |
+          cd testapp/build/windows/x64/runner/Release
+          Compress-Archive -Path Inklia.exe -DestinationPath Inklia-windows.zip
+
+      - name: Upload Windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: testapp/build/windows/x64/runner/Release/Inklia-windows.zip
+          asset_name: Inklia-windows.zip
+          asset_content_type: application/zip
