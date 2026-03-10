@@ -56,6 +56,20 @@ Inklia is a beautiful, feature-rich personal journal application built with Flut
 
 ---
 
+## Download
+
+Get the latest release for your platform:
+
+| Platform | Download |
+|----------|----------|
+| Android | [Inklia-android.apk](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-android.apk) |
+| iOS | [Inklia-ios.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-ios.zip) |
+| macOS | [Inklia-macos.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-macos.zip) |
+| Linux | [Inklia-linux.tar.gz](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-linux.tar.gz) |
+| Windows | [Inklia-windows.zip](https://github.com/charithmadhuranga/Inklia/releases/latest/download/Inklia-windows.zip) |
+
+---
+
 ## Demo
 
 Watch the app in action:
