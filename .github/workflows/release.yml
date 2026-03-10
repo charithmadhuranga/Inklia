@@ -25,14 +25,10 @@ jobs:
         run: flutter build apk --release
 
       - name: Upload APK
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: build/app/outputs/flutter-apk/app-release.apk
-          asset_name: Inklia-android.apk
-          asset_content_type: application/vnd.android.package-archive
+          name: Inklia-android.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
 
   build-ios:
     name: Build iOS
@@ -61,14 +57,10 @@ jobs:
           zip -r Inklia-ios.zip Payload
 
       - name: Upload iOS
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: build/ios/iphoneos/Inklia-ios.zip
-          asset_name: Inklia-ios.zip
-          asset_content_type: application/zip
+          name: Inklia-ios.zip
+          path: build/ios/iphoneos/Inklia-ios.zip
 
   build-macos:
     name: Build macOS
@@ -97,14 +89,10 @@ jobs:
           zip -r Inklia-macos.zip Payload
 
       - name: Upload macOS
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: build/macos/Build/Products/Release/Inklia-macos.zip
-          asset_name: Inklia-macos.zip
-          asset_content_type: application/zip
+          name: Inklia-macos.zip
+          path: build/macos/Build/Products/Release/Inklia-macos.zip
 
   build-linux:
     name: Build Linux
@@ -136,14 +124,10 @@ jobs:
           tar -czvf Inklia-linux.tar.gz Inklia
 
       - name: Upload Linux
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: build/linux/x64/release/bundle/Inklia-linux.tar.gz
-          asset_name: Inklia-linux.tar.gz
-          asset_content_type: application/gzip
+          name: Inklia-linux.tar.gz
+          path: build/linux/x64/release/bundle/Inklia-linux.tar.gz
 
   build-windows:
     name: Build Windows
@@ -170,11 +154,28 @@ jobs:
           Compress-Archive -Path Inklia.exe -DestinationPath Inklia-windows.zip
 
       - name: Upload Windows
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-artifact@v4
+        with:
+          name: Inklia-windows.zip
+          path: build/windows/x64/runner/Release/Inklia-windows.zip
+
+  release:
+    name: Create Release
+    needs: [build-android, build-ios, build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*.apk
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: build/windows/x64/runner/Release/Inklia-windows.zip
-          asset_name: Inklia-windows.zip
-          asset_content_type: application/zip
