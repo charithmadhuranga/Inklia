@@ -120,14 +120,14 @@ jobs:
 
       - name: Create TAR.GZ
         run: |
-          cd build/linux/x64/release
-          tar -czvf bundle/Inklia-linux.tar.gz bundle
+          cd build/linux/x64/release/bundle
+          tar -czvf ../Inklia-linux.tar.gz .
 
       - name: Upload Linux
         uses: actions/upload-artifact@v4
         with:
           name: Inklia-linux.tar.gz
-          path: build/linux/x64/release/bundle/Inklia-linux.tar.gz
+          path: build/linux/x64/release/Inklia-linux.tar.gz
 
   build-windows:
     name: Build Windows
